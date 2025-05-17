@@ -18,7 +18,7 @@ class PomodoroApp:
         self.tempo_restante = self.tempo_foco
         self.timer_ativo = False
         self.thread_timer = None
-        self.parar_thread = False # Adicionado para controlar o loop da thread
+        self.parar_thread = False
 
         self.label_tempo = ttk.Label(master, text=self.formatar_tempo(self.tempo_restante), font=("Arial", 48))
         self.label_tempo.pack(pady=20)
@@ -57,7 +57,7 @@ class PomodoroApp:
             self.timer_ativo = True
             self.botao_iniciar.config(state=tk.DISABLED)
             self.botao_pausar.config(state=tk.NORMAL)
-            self.parar_thread = False  # Reinicia o flag de parada
+            self.parar_thread = False
             self.thread_timer = threading.Thread(target=self.contar_tempo)
             self.thread_timer.daemon = True
             self.thread_timer.start()
@@ -67,7 +67,7 @@ class PomodoroApp:
             self.timer_ativo = False
             self.botao_iniciar.config(state=tk.NORMAL)
             self.botao_pausar.config(state=tk.DISABLED)
-            self.parar_thread = True # Seta o flag para parar a thread
+            self.parar_thread = True
 
     def resetar_timer(self):
         self.pausar_timer()
@@ -92,10 +92,10 @@ class PomodoroApp:
         while self.timer_ativo and self.tempo_restante > 0 and not self.parar_thread:
             time.sleep(1)
             self.tempo_restante -= 1
-            self.master.after(0, self.atualizar_label_tempo) # Usar master.after para atualizar a label
+            self.master.after(0, self.atualizar_label_tempo)
 
         if self.timer_ativo:
-            self.master.after(0, self.mudar_estado) # Usar master.after para mudar o estado
+            self.master.after(0, self.mudar_estado)
 
     def atualizar_label_tempo(self):
         self.label_tempo.config(text=self.formatar_tempo(self.tempo_restante))
@@ -103,12 +103,13 @@ class PomodoroApp:
     def mudar_estado(self):
         if self.estado == "foco":
             self.ciclos_foco += 1
-            if self.ciclos_foco % 4 == 0:
-                self.estado = "descanso_longo"
-                self.tempo_restante = self.tempo_descanso_longo
-            else:
+            if self.ciclos_foco < 4:
                 self.estado = "descanso_curto"
                 self.tempo_restante = self.tempo_descanso_curto
+            else:
+                self.estado = "descanso_longo"
+                self.tempo_restante = self.tempo_descanso_longo
+                self.ciclos_foco = 0  # Reseta os ciclos após o descanso longo
         else:
             self.estado = "foco"
             self.tempo_restante = self.tempo_foco
@@ -117,7 +118,7 @@ class PomodoroApp:
         self.label_tempo.config(text=self.formatar_tempo(self.tempo_restante))
         self.tocar_som()
         self.timer_ativo = True
-        self.parar_thread = False # Reinicia o flag de parada
+        self.parar_thread = False
         self.thread_timer = threading.Thread(target=self.contar_tempo)
         self.thread_timer.daemon = True
         self.thread_timer.start()
